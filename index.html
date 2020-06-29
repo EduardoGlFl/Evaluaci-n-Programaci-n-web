@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Evaluación</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+    />
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+    <style>
+      th {
+        background-color: gray;
+        color: white;
+        cursor: pointer;
+      }
+      td {
+        border-style: solid;
+        border-width: 1px;
+        text-align: center;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <div class="table-responsive">
+        <h1 align="center">VIZUALIZANDO ARCHIVOS CSV EN NAVEGADOR</h1>
+        <br />
+
+        <div align="center">
+          <input
+            type="file"
+            id="inputfile"
+            class="form-control"
+            accept=".csv"
+            required
+          />
+          <br />
+
+          <button
+            type="submit"
+            name="load_data"
+            id="load_data"
+            class="btn btn-info"
+          >
+            Load Data
+          </button>
+        </div>
+        <br />
+        <div id="student_table"></div>
+      </div>
+    </div>
+  </body>
+</html>
+
+<script>
+  function SelectColumn(index, tableId) {
+    var columnText = "You selected:\n\n";
+    var columnSelector =
+      "#" + tableId + " tbody > tr > td:nth-child(" + (index + 1) + ")";
+    var cells = $(columnSelector);
+
+    // clear existing selections
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+    }
+
+    if (document.createRange) {
+      cells.each(function (i, cell) {
+        var rangeObj = document.createRange();
+        rangeObj.selectNodeContents(cell);
+        window.getSelection().addRange(rangeObj);
+        columnText = columnText + "\n" + rangeObj.toString();
+      });
+    } else {
+      // Internet Explorer before version 9
+      cells.each(function (i, cell) {
+        var rangeObj = document.body.createTextRange();
+        rangeObj.moveToElementText(cell);
+        rangeObj.select();
+        columnText = columnText + "\n" + rangeObj.toString();
+      });
+    }
+
+    alert(columnText);
+  }
+
+  $(document).ready(function () {
+    $("#load_data").click(function () {
+      $.ajax({
+        url: "student.csv",
+        dataType: "text",
+        success: function (data) {
+          var student_data = data.split(/\r?\n|\r/);
+          var table_data = '<table class="table table-bordered table-striped">';
+          for (var count = 0; count < student_data.length; count++) {
+            var cell_data = student_data[count].split(",");
+            table_data += "<tr>";
+            for (
+              var cell_count = 0;
+              cell_count < cell_data.length;
+              cell_count++
+            ) {
+              if (count === 0) {
+                table_data +=
+                  "<th  title= 'click to select' >" +
+                  cell_data[cell_count] +
+                  "</th>";
+              } else {
+                table_data += "<td>" + cell_data[cell_count] + "</td>";
+              }
+            }
+            table_data += "</tr>";
+          }
+          table_data += "</table>";
+          $("#student_table").html(table_data);
+        },
+      });
+    });
+
+    $("#student_table thead th").each(function (index) {
+      $(this).click(function () {
+        SelectColumn(index, "demoTbl");
+      });
+    });
+  });
+</script>
